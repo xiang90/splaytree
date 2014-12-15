@@ -13,8 +13,86 @@ func NewSplayTree() Tree {
 	return &splayTree{}
 }
 
-func (st *splayTree) Get(key Item) {
-	panic("not implemented")
+//
+// Internal method to perform a top-down splay.
+//
+// splay(key) does the splay operation on the given key.
+// If key is in the tree, then the BinaryNode containing
+// that key becomes the root. If key is not in the tree,
+// then after the splay, key.root is either the greatest key
+// < key in the tree, or the lest key > key in the tree.
+//
+// This means, among other things, that if you splay with
+// a key that's larger than any in the tree, the rightmost
+// node of the tree becomes the root. This property is used
+// in the delete() method.
+//
+
+func (st *splayTree) splay(item Item) {
+	header := &binaryNode{}
+	l, r := header, header
+	var y *binaryNode
+	t := st.root
+
+	splaying := true
+	for splaying {
+		switch {
+		case item.Less(t.item): // item might be on the left path
+			if t.left == nil {
+				splaying = false
+				break
+			}
+			if item.Less(t.left.item) { // zig-zig -> rotate right
+				y = t.left
+				t.left = y.right
+				y.right = t
+				t = y
+				if t.left == nil {
+					splaying = false
+					break
+				}
+			}
+			r.left = t // link right
+			r = t
+			t = t.left
+		case t.item.Less(item): // item might be on the right path
+			if t.right == nil {
+				splaying = false
+				break
+			}
+			if t.right.item.Less(item) { // zig-zag -> rotage left
+				y = t.right
+				t.right = y.left
+				y.left = t
+				t = y
+				if t.right == nil {
+					splaying = false
+					break
+				}
+			}
+			l.right = t
+			l = t
+			t = t.right
+		default: // found the item
+			splaying = false
+		}
+	}
+	l.right = t.left
+	r.left = t.right
+	t.left = header.right
+	t.right = header.left
+	st.root = t
+}
+
+func (st *splayTree) Get(key Item) Item {
+	if st.root == nil {
+		return nil
+	}
+	st.splay(key)
+	if st.root.item.Less(key) || key.Less(st.root.item) {
+		return nil
+	}
+	return st.root.item
 }
 
 func (st *splayTree) Has(key Item) bool {
@@ -23,6 +101,28 @@ func (st *splayTree) Has(key Item) bool {
 
 func (st *splayTree) ReplaceOrInsert(item Item) Item {
 	panic("not implemented")
+}
+
+func (st *splayTree) insert(item Item) {
+	n := &binaryNode{item: item}
+	if st.root == nil {
+		st.root = n
+		return
+	}
+	st.splay(item)
+	switch {
+	case item.Less(st.root.item):
+		n.left = st.root.left
+		n.right = st.root
+		st.root.left = nil
+	case st.root.item.Less(item):
+		n.right = st.root.right
+		n.left = st.root
+		st.root.right = nil
+	default:
+		return
+	}
+	st.root = n
 }
 
 func (st *splayTree) Delete(item Item) Item {

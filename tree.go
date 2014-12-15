@@ -18,7 +18,7 @@ type ItemIterator func(i Item) bool
 type Tree interface {
 	// Get looks for the key item in the tree, returning it.  It returns nil if
 	// unable to find that item.
-	Get(key Item)
+	Get(key Item) Item
 
 	// Has returns true if the given key is in the tree.
 	Has(key Item) bool
