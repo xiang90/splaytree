@@ -30,7 +30,6 @@ func NewSplayTree() Tree {
 //
 
 func (st *splayTree) splay(item Item) {
-	found := false
 	header := &binaryNode{}
 	l, r := header, header
 	var y *binaryNode
@@ -144,17 +143,36 @@ func (st *splayTree) Delete(item Item) Item {
 	} else {
 		x := st.root.right
 		st.root = st.root.left
-		st.splay(key)
+		st.splay(item)
 		st.root.right = x
 	}
+	return item
 }
 
 func (st *splayTree) DeleteMin() Item {
-	panic("not implemented")
+	if st.root == nil {
+		return nil
+	}
+	x := st.root
+	for x != nil {
+		x = x.left
+	}
+	st.splay(x.item)
+	st.Delete(x.item)
+	return x.item
 }
 
 func (st *splayTree) DeleteMax() Item {
-	panic("not implemented")
+	if st.root == nil {
+		return nil
+	}
+	x := st.root
+	for x != nil {
+		x = x.right
+	}
+	st.splay(x.item)
+	st.Delete(x.item)
+	return x.item
 }
 
 func (st *splayTree) Len() int {
