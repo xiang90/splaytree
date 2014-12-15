@@ -6,7 +6,8 @@ type binaryNode struct {
 }
 
 type splayTree struct {
-	root *binaryNode
+	root   *binaryNode
+	length int
 }
 
 func NewSplayTree() Tree {
@@ -29,6 +30,7 @@ func NewSplayTree() Tree {
 //
 
 func (st *splayTree) splay(item Item) {
+	found := false
 	header := &binaryNode{}
 	l, r := header, header
 	var y *binaryNode
@@ -96,7 +98,7 @@ func (st *splayTree) Get(key Item) Item {
 }
 
 func (st *splayTree) Has(key Item) bool {
-	panic("not implemented")
+	return st.Get(key) != nil
 }
 
 func (st *splayTree) ReplaceOrInsert(item Item) Item {
@@ -123,10 +125,28 @@ func (st *splayTree) insert(item Item) {
 		return
 	}
 	st.root = n
+	st.length++
 }
 
 func (st *splayTree) Delete(item Item) Item {
-	panic("not implemented")
+	if st.length == 0 {
+		return nil
+	}
+
+	st.splay(item)
+	if st.root.item.Less(item) || item.Less(st.root.item) {
+		return nil
+	}
+
+	// delete the root
+	if st.root.left == nil {
+		st.root = st.root.right
+	} else {
+		x := st.root.right
+		st.root = st.root.left
+		st.splay(key)
+		st.root.right = x
+	}
 }
 
 func (st *splayTree) DeleteMin() Item {
@@ -138,7 +158,7 @@ func (st *splayTree) DeleteMax() Item {
 }
 
 func (st *splayTree) Len() int {
-	panic("not implemented")
+	return st.length
 }
 
 func (st *splayTree) AscendRange(greaterOrEqual, lessThan Item, iterator ItemIterator) {
